@@ -139,7 +139,8 @@ function filterLevel(l){state.levelFilter=l;document.querySelectorAll('.diff-btn
 
 function startCluster(id,mode){const c=DATA.clusters.find(x=>x.id===id);if(!c)return;state.currentCluster=c;state.answered=false;if(mode==='endless'){state.endlessMode=true;const pool=[...c.endless];for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}state.endlessSession=pool.slice(0,Math.min(10,pool.length));state.endlessIndex=0;state.endlessSessionCorrect=0;state.endlessSessionTotal=0;}else{state.endlessMode=false;state.currentCase=0;}showScreen('courtroom');renderCase();}
 
-function getCurrentCase(){return state.endlessMode?state.endlessSession[state.endlessIndex]:state.currentCluster.cases[state.currentCase];}
+function normalizeCase(c){if(!c||!state.endlessMode)return c;if(c._normalized)return c;const n={...c,_normalized:true};if(c.type==='verdict'){if(!n.answer&&c.status)n.answer=c.status;if(!n.crime&&c.explanation)n.crime=c.explanation;if(n.corrected==null&&c.ko)n.corrected=c.ko;if(!n.deepDive)n.deepDive=c.ko||c.explanation||'';}else if(c.type==='choice'){if(!n.prompt)n.prompt=(c.sentence||'').replace('[]','＿＿＿');if(!n.context&&c.ko)n.context=c.ko;if(Array.isArray(c.options)&&typeof c.options[0]==='string'){n.options=c.options.map(t=>({text:t,correct:t===c.answer}));}if(!n.deepDive)n.deepDive=c.explanation||'';}return n;}
+function getCurrentCase(){const raw=state.endlessMode?state.endlessSession[state.endlessIndex]:state.currentCluster.cases[state.currentCase];return normalizeCase(raw);}
 function isAtEnd(){return state.endlessMode?state.endlessIndex>=state.endlessSession.length:state.currentCase>=state.currentCluster.cases.length;}
 function getCaseLabel(){return state.endlessMode?`${state.endlessIndex+1}/${state.endlessSession.length}`:`${state.currentCase+1}/${state.currentCluster.cases.length}`;}
 
