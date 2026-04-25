@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>逆転文法 — Grammar Courtroom</title>
+<style>
+:root{color-scheme:light;--bg:#f5f2eb;--fg:#1a1a1a;--accent:#8b0000;--innocent:#2d5016;--innocent-bg:#e8f5e1;--guilty:#8b0000;--guilty-bg:#fde8e8;--border:#1a1a1a;--muted:#666;--card-bg:#fff;--hover:#eee;--n2:#4a5568;--n1:#8b0000;--shadow:0 2px 0 #1a1a1a;--font-sans:'Segoe UI',system-ui,-apple-system,sans-serif;--font-mono:'SF Mono','Fira Code','Consolas',monospace;--font-jp:'Hiragino Kaku Gothic ProN','Noto Sans JP','Yu Gothic',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--fg);min-height:100vh;-webkit-font-smoothing:antialiased}
+.nav{display:flex;border-bottom:2px solid var(--border);background:var(--card-bg);position:sticky;top:0;z-index:100}
+.nav-btn{flex:1;padding:12px 8px;border:none;background:none;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
+.nav-btn:hover{background:var(--hover)}.nav-btn.active{color:var(--fg);border-bottom-color:var(--accent)}
+.screen{display:none;padding:16px;padding-bottom:80px}.screen.active{display:block}
+h1{font-family:var(--font-mono);font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+h2{font-family:var(--font-mono);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px}
+h3{font-family:var(--font-mono);font-size:13px;font-weight:700;margin-bottom:8px}
+.header{padding:20px 16px 16px;border-bottom:2px solid var(--border);background:var(--card-bg)}
+.header-sub{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.stats-row{display:flex;gap:16px;margin-top:10px}
+.stat{font-family:var(--font-mono);font-size:12px}.stat-num{font-size:22px;font-weight:800;line-height:1}.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.cluster-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.cluster-card{background:var(--card-bg);border:2px solid var(--border);padding:14px;cursor:pointer;transition:all .1s}
+.cluster-card:hover{box-shadow:var(--shadow);transform:translateY(-1px)}.cluster-card:active{transform:translateY(0);box-shadow:none}
+.cluster-top{display:flex;justify-content:space-between;align-items:center}
+.cluster-name{font-family:var(--font-jp);font-size:15px;font-weight:700}
+.cluster-meta{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:2px}
+.level-badge{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:3px 8px;border:2px solid;letter-spacing:.5px;flex-shrink:0}
+.level-n2{color:var(--n2);border-color:var(--n2)}.level-n1{color:var(--n1);border-color:var(--n1)}.level-mix{color:#805a00;border-color:#805a00}
+.cluster-progress{height:3px;background:#e0e0e0;margin-top:8px}.cluster-progress-fill{height:100%;background:var(--fg);transition:width .3s}
+.mode-row{display:flex;gap:6px;margin-top:10px}
+.mode-pill{flex:1;padding:6px 8px;border:1.5px solid var(--border);background:var(--card-bg);font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;text-align:center;transition:all .1s;color:var(--fg)}
+.mode-pill:hover{background:var(--hover)}.mode-pill.active-mode{background:var(--fg);color:var(--bg)}
+.mode-pill.locked{opacity:.35;cursor:not-allowed;border-style:dashed}
+.mode-pill .pill-sub{font-size:9px;font-weight:400;opacity:.7;display:block;margin-top:1px}
+.courtroom-header{text-align:center;padding:16px;border-bottom:2px solid var(--border);background:var(--card-bg);margin:-16px -16px 16px}
+.case-number{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:1px}
+.sentence-dock{background:var(--card-bg);border:2px solid var(--border);padding:24px 20px;margin:16px 0;text-align:center}
+.sentence-text{font-family:var(--font-jp);font-size:19px;line-height:1.8;letter-spacing:.5px}
+.sentence-context{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:10px}
+.verdict-buttons{display:flex;gap:10px;margin:16px 0}
+.verdict-btn{flex:1;padding:16px;border:2px solid var(--border);background:var(--card-bg);font-family:var(--font-mono);font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1px;transition:all .1s}
+.verdict-btn:hover{box-shadow:var(--shadow);transform:translateY(-1px)}.verdict-btn:active{transform:translateY(0);box-shadow:none}
+.verdict-btn.innocent:hover{background:var(--innocent-bg);color:var(--innocent)}
+.verdict-btn.guilty:hover{background:var(--guilty-bg);color:var(--guilty)}
+.verdict-btn.selected-correct{background:var(--innocent-bg)!important;color:var(--innocent)!important;border-color:var(--innocent)!important}
+.verdict-btn.selected-wrong{background:var(--guilty-bg)!important;color:var(--guilty)!important;border-color:var(--guilty)!important}
+.result-card{border:2px solid var(--border);padding:16px;margin:16px 0;display:none}
+.result-card.show{display:block}.result-card.correct{background:var(--innocent-bg);border-color:var(--innocent)}.result-card.wrong{background:var(--guilty-bg);border-color:var(--guilty)}
+.result-verdict{font-family:var(--font-mono);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.result-explanation{font-family:var(--font-jp);font-size:14px;line-height:1.8}
+.result-corrected{margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,.1);font-family:var(--font-jp);font-size:14px}
+.result-corrected strong{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.why-btn{width:100%;padding:12px;border:2px solid var(--border);background:var(--card-bg);font-family:var(--font-mono);font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;transition:all .1s}
+.why-btn:hover{background:var(--hover)}
+.deep-dive{display:none;border:2px solid var(--border);background:var(--card-bg);padding:16px;margin-top:8px}
+.deep-dive.show{display:block}
+.deep-dive h4{font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;color:var(--accent)}
+.deep-dive p,.deep-dive li{font-family:var(--font-jp);font-size:13px;line-height:1.8}
+.next-btn{width:100%;padding:14px;border:2px solid var(--border);background:var(--fg);color:var(--bg);font-family:var(--font-mono);font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1px;margin-top:12px;transition:all .1s}
+.next-btn:hover{opacity:.85}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 0;border:none;background:none;font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;margin-bottom:12px}
+.back-btn:hover{color:var(--fg)}
+.investigation-card{background:var(--card-bg);border:2px solid var(--border);margin-bottom:12px}
+.investigation-header{padding:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.investigation-header:hover{background:var(--hover)}
+.investigation-body{display:none;padding:0 14px 14px;border-top:1px solid #e0e0e0}.investigation-body.open{display:block}
+.grammar-point{margin:12px 0;padding:12px;background:var(--bg);border-left:3px solid var(--border)}
+.grammar-point-name{font-family:var(--font-jp);font-size:15px;font-weight:700}
+.grammar-point-meaning{font-family:var(--font-sans);font-size:13px;color:var(--muted);margin-top:2px}
+.grammar-point-formation{font-family:var(--font-mono);font-size:12px;margin-top:6px;padding:6px 8px;background:var(--card-bg);border:1px solid #e0e0e0}
+.grammar-example{font-family:var(--font-jp);font-size:13px;line-height:1.8;margin-top:8px;padding-left:12px;border-left:2px solid #ddd}
+.grammar-example .ko{font-size:12px;color:var(--muted)}
+.comparison-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+.comparison-table th{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px;text-align:left;padding:8px;border-bottom:2px solid var(--border);background:var(--bg)}
+.comparison-table td{font-family:var(--font-jp);padding:8px;border-bottom:1px solid #e0e0e0;vertical-align:top;line-height:1.6}
+.search-box{width:100%;padding:12px;border:2px solid var(--border);font-family:var(--font-jp);font-size:14px;background:var(--card-bg);outline:none;margin-bottom:16px}
+.search-box:focus{box-shadow:var(--shadow)}.search-box::placeholder{color:#bbb}
+.record-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.record-card{background:var(--card-bg);border:2px solid var(--border);padding:14px;text-align:center}
+.record-big{font-family:var(--font-mono);font-size:28px;font-weight:800;line-height:1}
+.record-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.error-heatmap{margin:16px 0}
+.heatmap-row{display:flex;align-items:center;margin-bottom:4px}
+.heatmap-label{font-family:var(--font-mono);font-size:11px;width:120px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.heatmap-bar{flex:1;height:20px;background:#e0e0e0;position:relative}
+.heatmap-fill{height:100%;transition:width .3s}.heatmap-fill.good{background:var(--innocent)}.heatmap-fill.mid{background:#b8860b}.heatmap-fill.bad{background:var(--accent)}
+.heatmap-pct{font-family:var(--font-mono);font-size:10px;width:36px;text-align:right;flex-shrink:0;margin-left:6px}
+.streak-display{text-align:center;padding:20px;background:var(--card-bg);border:2px solid var(--border);margin:12px 0}
+.streak-count{font-family:var(--font-mono);font-size:36px;font-weight:800}
+.streak-text{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.reset-btn{width:100%;padding:10px;border:1px solid #ddd;background:none;font-family:var(--font-mono);font-size:11px;color:var(--muted);cursor:pointer;margin-top:20px}
+.reset-btn:hover{border-color:var(--accent);color:var(--accent)}
+.diff-row{display:flex;gap:6px;margin:12px 0;flex-wrap:wrap}
+.diff-btn{flex:1;min-width:50px;padding:8px;border:2px solid var(--border);background:var(--card-bg);font-family:var(--font-mono);font-size:11px;font-weight:600;cursor:pointer;text-align:center;transition:all .1s}
+.diff-btn:hover{background:var(--hover)}.diff-btn.active{background:var(--fg);color:var(--bg)}
+.choice-options{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.choice-btn{padding:14px;border:2px solid var(--border);background:var(--card-bg);font-family:var(--font-jp);font-size:14px;line-height:1.6;cursor:pointer;text-align:left;transition:all .1s}
+.choice-btn:hover{box-shadow:var(--shadow);transform:translateY(-1px)}.choice-btn:active{transform:translateY(0);box-shadow:none}
+.choice-btn.correct-choice{background:var(--innocent-bg)!important;border-color:var(--innocent)!important}
+.choice-btn.wrong-choice{background:var(--guilty-bg)!important;border-color:var(--guilty)!important}
+.mode-tag{display:inline-block;font-family:var(--font-mono);font-size:10px;font-weight:700;padding:2px 8px;border:1px solid;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.mode-verdict{color:var(--accent);border-color:var(--accent)}.mode-choice{color:#805a00;border-color:#805a00}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.fade-in{animation:fadeIn .2s ease-out}
+.completion-banner{text-align:center;padding:32px 16px;background:var(--card-bg);border:2px solid var(--border)}
+.completion-score{font-family:var(--font-mono);font-size:48px;font-weight:800}
+.completion-text{font-family:var(--font-mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.completion-msg{font-family:var(--font-jp);font-size:15px;margin-top:12px;line-height:1.6}
+.endless-header{background:var(--accent);color:#fff;padding:8px 12px;margin:-16px -16px 16px;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-align:center}
+.stop-btn{width:100%;padding:12px;border:2px solid var(--accent);background:var(--card-bg);font-family:var(--font-mono);font-size:12px;font-weight:600;cursor:pointer;margin-top:12px;color:var(--accent);transition:all .1s}
+.stop-btn:hover{background:var(--guilty-bg)}
+.src-tag{display:inline-block;font-family:var(--font-mono);font-size:9px;padding:1px 4px;border:1px solid #ccc;color:var(--muted);margin-left:6px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="header"><h1>逆転文法</h1><div class="header-sub">Grammar Courtroom — N2 & N1</div><div class="stats-row" id="headerStats"></div></div>
+<nav class="nav"><button class="nav-btn active" onclick="showScreen('lobby')">法廷</button><button class="nav-btn" onclick="showScreen('investigation')">捜査</button><button class="nav-btn" onclick="showScreen('records')">記録</button></nav>
+<div class="screen active" id="screen-lobby"><h2>事件ファイル — Case Files</h2><div class="diff-row"><button class="diff-btn active" onclick="filterLevel('all')">ALL</button><button class="diff-btn" onclick="filterLevel('N2')">N2</button><button class="diff-btn" onclick="filterLevel('N1')">N1</button><button class="diff-btn" onclick="filterLevel('MIX')">N2→N1</button></div><div class="cluster-list" id="clusterList"></div></div>
+<div class="screen" id="screen-courtroom"></div>
+<div class="screen" id="screen-investigation"><h2>捜査資料 — Investigation Files</h2><input type="text" class="search-box" placeholder="文法を検索..." oninput="filterInvestigation(this.value)"/><div id="investigationList"></div></div>
+<div class="screen" id="screen-records"><h2>裁判記録 — Court Records</h2><div id="recordsContent"></div></div>
+<script src="gyakuten-data.js"></script>
+<script>
+const DATA = BUNPOU_DATA;
+
+// ===== STATE =====
+let state={currentScreen:'lobby',currentCluster:null,currentCase:0,answered:false,levelFilter:'all',progress:{},streak:0,totalAnswered:0,totalCorrect:0,endlessMode:false,endlessSession:[],endlessIndex:0,endlessSessionCorrect:0,endlessSessionTotal:0};
+try{const s=localStorage.getItem('gyakuten-bunpou-v2');if(s){const p=JSON.parse(s);state.progress={};for(const[k,v]of Object.entries(p.progress||{}))state.progress[k]={completed:new Set(v.completed||[]),correct:new Set(v.correct||[]),wrong:new Set(v.wrong||[])};state.streak=p.streak||0;state.totalAnswered=p.totalAnswered||0;state.totalCorrect=p.totalCorrect||0;}}catch(e){}
+function saveState(){try{const s={progress:{},streak:state.streak,totalAnswered:state.totalAnswered,totalCorrect:state.totalCorrect};for(const[k,v]of Object.entries(state.progress))s.progress[k]={completed:[...v.completed],correct:[...v.correct],wrong:[...v.wrong]};localStorage.setItem('gyakuten-bunpou-v2',JSON.stringify(s));}catch(e){}}
+function getProgress(id){if(!state.progress[id])state.progress[id]={completed:new Set(),correct:new Set(),wrong:new Set()};return state.progress[id];}
+function isStoryComplete(c){return getProgress(c.id).completed.size>=c.cases.length;}
+function hasEndless(c){return c.endless&&c.endless.length>0;}
+
+function showScreen(n){state.currentScreen=n;document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+n).classList.add('active');document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',['lobby','investigation','records'][i]===n));if(n==='lobby')renderLobby();if(n==='investigation')renderInvestigation();if(n==='records')renderRecords();}
+function renderHeaderStats(){const el=document.getElementById('headerStats');const p=state.totalAnswered?Math.round(state.totalCorrect/state.totalAnswered*100):0;el.innerHTML=`<div class="stat"><div class="stat-num">${state.totalAnswered}</div><div class="stat-label">Cases</div></div><div class="stat"><div class="stat-num">${p}%</div><div class="stat-label">Accuracy</div></div><div class="stat"><div class="stat-num">${state.streak}</div><div class="stat-label">Streak</div></div>`;}
+
+function renderLobby(){renderHeaderStats();const list=document.getElementById('clusterList');const f=DATA.clusters.filter(c=>state.levelFilter==='all'||c.level===state.levelFilter);list.innerHTML=f.map(c=>{const prog=getProgress(c.id);const t=c.cases.length;const d=prog.completed.size;const p=t?Math.round(d/t*100):0;const lc=c.level==='N2'?'level-n2':c.level==='N1'?'level-n1':'level-mix';const sd=isStoryComplete(c);const ea=hasEndless(c);const el=!sd||!ea;return`<div class="cluster-card" onclick="event.stopPropagation()"><div class="cluster-top"><div style="flex:1;min-width:0"><div class="cluster-name">${c.name}</div><div class="cluster-meta">${c.desc}</div></div><span class="level-badge ${lc}">${c.level}</span></div><div class="cluster-meta">${d}/${t} story${ea?' · '+c.endless.length+' endless':''}</div><div class="cluster-progress"><div class="cluster-progress-fill" style="width:${p}%"></div></div><div class="mode-row"><div class="mode-pill" onclick="startCluster('${c.id}','story')">Story${sd?' ✓':''}<span class="pill-sub">${d}/${t}</span></div><div class="mode-pill ${el?'locked':''}" onclick="${el?'':'startCluster(\''+c.id+'\',\'endless\')'}">Endless${ea?'':' ∅'}<span class="pill-sub">${el?(sd?'no cases yet':'clear story first'):c.endless.length+' cases'}</span></div></div></div>`;}).join('');}
+function filterLevel(l){state.levelFilter=l;document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('active',b.textContent===(l==='all'?'ALL':l)));renderLobby();}
+
+function startCluster(id,mode){const c=DATA.clusters.find(x=>x.id===id);if(!c)return;state.currentCluster=c;state.answered=false;if(mode==='endless'){state.endlessMode=true;const pool=[...c.endless];for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}state.endlessSession=pool.slice(0,Math.min(10,pool.length));state.endlessIndex=0;state.endlessSessionCorrect=0;state.endlessSessionTotal=0;}else{state.endlessMode=false;state.currentCase=0;}showScreen('courtroom');renderCase();}
+
+function getCurrentCase(){return state.endlessMode?state.endlessSession[state.endlessIndex]:state.currentCluster.cases[state.currentCase];}
+function isAtEnd(){return state.endlessMode?state.endlessIndex>=state.endlessSession.length:state.currentCase>=state.currentCluster.cases.length;}
+function getCaseLabel(){return state.endlessMode?`${state.endlessIndex+1}/${state.endlessSession.length}`:`${state.currentCase+1}/${state.currentCluster.cases.length}`;}
+
+function renderCase(){const cl=state.currentCluster;const sc=document.getElementById('screen-courtroom');if(isAtEnd()){renderCompletion();return;}const c=getCurrentCase();let h=`<button class="back-btn" onclick="showScreen('lobby')">← 戻る</button>`;if(state.endlessMode)h+=`<div class="endless-header">ENDLESS PRACTICE</div>`;h+=`<div class="courtroom-header"><div class="cluster-name" style="margin-bottom:4px">${cl.name}</div><div class="case-number">CASE ${getCaseLabel()}</div></div>`;
+if(c.type==='verdict'){h+=`<div class="mode-tag mode-verdict">有罪 or 無罪</div><div class="sentence-dock fade-in"><div class="sentence-text">${c.sentence}</div></div><div class="verdict-buttons" id="vb"><button class="verdict-btn innocent" onclick="submitVerdict('innocent')">無罪<br><span style="font-size:10px;font-weight:400">Innocent</span></button><button class="verdict-btn guilty" onclick="submitVerdict('guilty')">有罪<br><span style="font-size:10px;font-weight:400">Guilty</span></button></div><div class="result-card" id="rc"></div><div class="deep-dive" id="dd"><h4>捜査メモ</h4><p>${c.deepDive}</p></div><button class="next-btn" id="nb" style="display:none" onclick="nextCase()">次の事件へ →</button>`;}
+else{h+=`<div class="mode-tag mode-choice">選択</div><div class="sentence-dock fade-in"><div class="sentence-text">${c.prompt}</div>${c.context?`<div class="sentence-context">${c.context}</div>`:''}</div><div class="choice-options" id="co">${c.options.map((o,i)=>`<button class="choice-btn" onclick="submitChoice(${i})">${o.text}</button>`).join('')}</div><div class="result-card" id="rc"></div><div class="deep-dive" id="dd"><h4>捜査メモ</h4><p>${c.deepDive}</p></div><button class="next-btn" id="nb" style="display:none" onclick="nextCase()">次の事件へ →</button>`;}
+if(state.endlessMode)h+=`<button class="stop-btn" onclick="endEndless()">セッション終了</button>`;sc.innerHTML=h;}
+
+function recordAnswer(ok){if(!state.endlessMode){const p=getProgress(state.currentCluster.id);p.completed.add(state.currentCase);if(ok)p.correct.add(state.currentCase);else p.wrong.add(state.currentCase);}else{state.endlessSessionTotal++;if(ok)state.endlessSessionCorrect++;}if(ok){state.streak++;state.totalCorrect++;}else state.streak=0;state.totalAnswered++;saveState();renderHeaderStats();}
+
+function submitVerdict(v){if(state.answered)return;state.answered=true;const c=getCurrentCase();const ok=v===c.answer;recordAnswer(ok);document.querySelectorAll('.verdict-btn').forEach(b=>{b.style.pointerEvents='none';if(b.classList.contains(c.answer))b.classList.add('selected-correct');if(b.classList.contains(v)&&!ok)b.classList.add('selected-wrong');});const rc=document.getElementById('rc');rc.className=`result-card show fade-in ${ok?'correct':'wrong'}`;rc.innerHTML=`<div class="result-verdict">${ok?'✓ 正解！':'✗ 不正解'}</div><div class="result-explanation">${c.crime||''}</div>${c.corrected?`<div class="result-corrected"><strong>修正文:</strong> ${c.corrected}</div>`:''}`;const dd=document.getElementById('dd');const wb=document.createElement('button');wb.className='why-btn';wb.textContent='なぜ？ — もっと詳しく';wb.onclick=()=>dd.classList.toggle('show');rc.after(wb);document.getElementById('nb').style.display='block';}
+
+function submitChoice(i){if(state.answered)return;state.answered=true;const c=getCurrentCase();const ok=c.options[i].correct;recordAnswer(ok);document.querySelectorAll('.choice-btn').forEach((b,j)=>{b.style.pointerEvents='none';if(c.options[j].correct)b.classList.add('correct-choice');if(j===i&&!ok)b.classList.add('wrong-choice');});const rc=document.getElementById('rc');rc.className=`result-card show fade-in ${ok?'correct':'wrong'}`;rc.innerHTML=`<div class="result-verdict">${ok?'✓ 正解！':'✗ 不正解'}</div><div class="result-explanation">${c.explanation||''}</div>`;const dd=document.getElementById('dd');const wb=document.createElement('button');wb.className='why-btn';wb.textContent='なぜ？ — もっと詳しく';wb.onclick=()=>dd.classList.toggle('show');rc.after(wb);document.getElementById('nb').style.display='block';}
+
+function nextCase(){if(state.endlessMode)state.endlessIndex++;else state.currentCase++;state.answered=false;renderCase();document.getElementById('screen-courtroom').scrollTo(0,0);}
+
+function renderCompletion(){const cl=state.currentCluster;const sc=document.getElementById('screen-courtroom');let cor,tot;if(state.endlessMode){cor=state.endlessSessionCorrect;tot=state.endlessSessionTotal;}else{const p=getProgress(cl.id);tot=cl.cases.length;cor=p.correct.size;}const pct=tot?Math.round(cor/tot*100):0;const msg=pct===100?'完璧！':pct>=80?'よくできました！':pct>=60?'まあまあ。捜査資料で確認。':'もう一度挑戦。';const ul=!state.endlessMode&&isStoryComplete(cl)&&hasEndless(cl);sc.innerHTML=`<button class="back-btn" onclick="showScreen('lobby')">← 戻る</button>${state.endlessMode?'<div class="endless-header">SESSION COMPLETE</div>':''}<div class="completion-banner fade-in"><div class="completion-score">${pct}%</div><div class="completion-text">${cor}/${tot} correct</div><div class="completion-msg">${msg}</div></div>${ul?'<div style="text-align:center;margin-top:12px;font-family:var(--font-mono);font-size:12px;color:var(--accent)">ENDLESS PRACTICE UNLOCKED</div>':''}<button class="next-btn" onclick="${state.endlessMode?`startCluster('${cl.id}','endless')`:'retryCluster()'}" style="margin-top:12px">${state.endlessMode?'もう一回ランダム':'もう一度挑戦'}</button><button class="why-btn" onclick="showScreen('investigation')">捜査資料 →</button><button class="why-btn" onclick="showScreen('lobby')">他の事件 →</button>`;}
+function retryCluster(){state.progress[state.currentCluster.id]={completed:new Set(),correct:new Set(),wrong:new Set()};saveState();state.currentCase=0;state.answered=false;state.endlessMode=false;renderCase();}
+function endEndless(){if(state.endlessSessionTotal>0)renderCompletion();else showScreen('lobby');}
+
+function renderInvestigation(){document.getElementById('investigationList').innerHTML=DATA.clusters.map(c=>{const lc=c.level==='N2'?'level-n2':c.level==='N1'?'level-n1':'level-mix';return`<div class="investigation-card" data-search="${c.name} ${c.desc} ${c.points.map(p=>p.name+' '+p.meaning).join(' ')}"><div class="investigation-header" onclick="this.nextElementSibling.classList.toggle('open')"><div><div class="cluster-name">${c.name}</div><div class="cluster-meta">${c.points.length} points</div></div><span class="level-badge ${lc}">${c.level}</span></div><div class="investigation-body">${c.points.map(p=>`<div class="grammar-point"><div class="grammar-point-name">${p.name}</div><div class="grammar-point-meaning">${p.meaning}</div><div class="grammar-point-formation">${p.formation}</div>${p.examples.map(e=>`<div class="grammar-example">${e.ja}<br><span class="ko">${e.ko}</span></div>`).join('')}</div>`).join('')}${c.comparison?`<h3 style="margin-top:16px">比較表</h3><table class="comparison-table"><tr>${c.comparison.headers.map(h=>`<th>${h}</th>`).join('')}</tr>${c.comparison.rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</table>`:''}</div></div>`;}).join('');}
+function filterInvestigation(q){const ql=q.toLowerCase();document.querySelectorAll('.investigation-card').forEach(c=>{c.style.display=c.dataset.search.toLowerCase().includes(ql)?'block':'none';});}
+
+function renderRecords(){renderHeaderStats();const ct=document.getElementById('recordsContent');const p=state.totalAnswered?Math.round(state.totalCorrect/state.totalAnswered*100):0;let cs=DATA.clusters.map(c=>{const pr=getProgress(c.id);const t=c.cases.length;const co=pr.correct.size;const a=pr.completed.size;return{name:c.name,accuracy:a?Math.round(co/a*100):-1,attempted:a};}).filter(s=>s.attempted>0);ct.innerHTML=`<div class="streak-display"><div style="font-size:32px">${state.streak>=5?'🔥':state.streak>=3?'✨':'⚖️'}</div><div class="streak-count">${state.streak}</div><div class="streak-text">Current Streak</div></div><div class="record-grid"><div class="record-card"><div class="record-big">${state.totalAnswered}</div><div class="record-label">Total</div></div><div class="record-card"><div class="record-big">${p}%</div><div class="record-label">Accuracy</div></div><div class="record-card"><div class="record-big">${state.totalCorrect}</div><div class="record-label">Correct</div></div><div class="record-card"><div class="record-big">${state.totalAnswered-state.totalCorrect}</div><div class="record-label">Wrong</div></div></div>${cs.length>0?`<h3 style="margin-top:20px">事件別正答率</h3><div class="error-heatmap">${cs.sort((a,b)=>a.accuracy-b.accuracy).map(s=>`<div class="heatmap-row"><div class="heatmap-label" title="${s.name}">${s.name.split('—')[0].trim()}</div><div class="heatmap-bar"><div class="heatmap-fill ${s.accuracy>=80?'good':s.accuracy>=50?'mid':'bad'}" style="width:${s.accuracy}%"></div></div><div class="heatmap-pct">${s.accuracy}%</div></div>`).join('')}</div>`:'<p style="text-align:center;color:var(--muted);margin-top:40px;font-family:var(--font-mono);font-size:12px">まだ記録なし。</p>'}<button class="reset-btn" onclick="if(confirm('リセット？')){resetAll();}">全記録リセット</button>`;}
+function resetAll(){state.progress={};state.streak=0;state.totalAnswered=0;state.totalCorrect=0;saveState();renderRecords();renderHeaderStats();}
+
+renderHeaderStats();renderLobby();
+</script>
+</body>
+</html>

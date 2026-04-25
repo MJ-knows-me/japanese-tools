@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>JLPT N1 への道</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap');
+
+  @page { size: A4 landscape; margin: 12mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f6f4f0;
+    --fg: #1a1a18;
+    --muted: #9a9590;
+    --border: #d8d4ce;
+    --border-light: #e8e4de;
+    --n2: #6b5ea4; --voc: #c85a6a; --vex: #a8486a;
+    --grm: #2a7a5a; --rdg: #3868a0; --lst: #2858a0;
+    --mck: #b89020; --kn2: #b87838; --kn1: #a04830;
+  }
+
+  body {
+    font-family: 'Inter', 'Pretendard', system-ui, sans-serif;
+    background: var(--bg); color: var(--fg);
+    padding: 40px 48px;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  @media print {
+    body { padding: 0; }
+    .screen-only { display: none !important; }
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2px solid var(--fg); padding-bottom: 12px;
+    margin-bottom: 32px;
+  }
+  .header-left h1 {
+    font-family: 'Instrument Serif', Georgia, 'Noto Serif JP', serif;
+    font-size: 38px; font-weight: 400; letter-spacing: -1px;
+    line-height: 1;
+  }
+  .header-left h1 em {
+    font-style: italic; font-weight: 400;
+  }
+  .header-right {
+    text-align: right; font-size: 11px; color: var(--muted);
+    letter-spacing: 0.5px; text-transform: uppercase;
+    line-height: 1.8;
+  }
+  .header-right .d-day {
+    font-size: 24px; font-weight: 600; color: var(--fg);
+    letter-spacing: -0.5px; text-transform: none;
+    font-family: 'Instrument Serif', Georgia, serif;
+  }
+
+  /* ── Progress (screen) ── */
+  .progress-row {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 28px; font-size: 11px; color: var(--muted);
+  }
+  .progress-track {
+    flex: 1; height: 3px; background: var(--border);
+    border-radius: 2px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--fg); border-radius: 2px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+  .progress-text { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ── Grid ── */
+  .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+
+  /* ── Section ── */
+  .section { margin-bottom: 22px; }
+  .section-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 8px; padding-bottom: 4px;
+  }
+  .section-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .section-count {
+    font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums;
+  }
+  .section-accent {
+    width: 100%; height: 1px; margin-bottom: 8px;
+  }
+  .section-note {
+    font-size: 8.5px; color: var(--muted); margin: -4px 0 6px;
+    font-style: italic; letter-spacing: 0.3px;
+  }
+
+  /* ── Tiles ── */
+  .tiles { display: grid; gap: 3px; }
+
+  .tile {
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.5);
+    padding: 6px 4px;
+    font-size: 8.5px; font-weight: 400;
+    text-align: center; line-height: 1.2;
+    min-height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none;
+    transition: all 0.2s ease;
+    letter-spacing: 0.2px;
+    position: relative;
+  }
+
+  .tile:hover {
+    border-color: var(--fg);
+    background: rgba(255,255,255,0.9);
+  }
+
+  .tile.done {
+    color: #fff;
+    border-color: transparent;
+    font-weight: 500;
+  }
+
+  /* Category done-state colors */
+  .s-n2  .tile.done { background: var(--n2); }
+  .s-voc .tile.done { background: var(--voc); }
+  .s-vex .tile.done { background: var(--vex); }
+  .s-grm .tile.done { background: var(--grm); }
+  .s-rdg .tile.done { background: var(--rdg); }
+  .s-lst .tile.done { background: var(--lst); }
+  .s-mck .tile.done { background: var(--mck); }
+  .s-kn2 .tile.done { background: var(--kn2); }
+  .s-kn1 .tile.done { background: var(--kn1); }
+
+  /* Accent lines per section */
+  .s-n2  .section-accent { background: var(--n2); }
+  .s-n2  .section-title  { color: var(--n2); }
+  .s-voc .section-accent { background: var(--voc); }
+  .s-voc .section-title  { color: var(--voc); }
+  .s-vex .section-accent { background: var(--vex); }
+  .s-vex .section-title  { color: var(--vex); }
+  .s-grm .section-accent { background: var(--grm); }
+  .s-grm .section-title  { color: var(--grm); }
+  .s-rdg .section-accent { background: var(--rdg); }
+  .s-rdg .section-title  { color: var(--rdg); }
+  .s-lst .section-accent { background: var(--lst); }
+  .s-lst .section-title  { color: var(--lst); }
+  .s-mck .section-accent { background: var(--mck); }
+  .s-mck .section-title  { color: var(--mck); }
+  .s-kn2 .section-accent { background: var(--kn2); }
+  .s-kn2 .section-title  { color: var(--kn2); }
+  .s-kn1 .section-accent { background: var(--kn1); }
+  .s-kn1 .section-title  { color: var(--kn1); }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 20px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 8px; color: var(--muted); letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>JLPT N1 <em>への道</em></h1>
+  </div>
+  <div class="header-right">
+    <div class="d-day">D–96</div>
+    2026. 07. 05<br>117 tiles
+  </div>
+</div>
+
+<!-- Progress (screen only) -->
+<div class="progress-row screen-only">
+  <span class="progress-text" id="pLabel">0 / 117</span>
+  <div class="progress-track"><div class="progress-fill" id="pBar" style="width:0%"></div></div>
+  <span class="progress-text" id="pPct">0%</span>
+</div>
+
+<!-- Columns -->
+<div class="columns">
+  <!-- LEFT -->
+  <div>
+    <div class="section s-n2">
+      <div class="section-head">
+        <span class="section-title">N2 단기합격 잔여</span>
+        <span class="section-count" data-sec="n2">0/3</span>
+      </div>
+      <div class="section-accent"></div>
+      <div class="tiles" style="grid-template-columns:repeat(3,1fr)">
+        <div class="tile" onclick="tog(this)">모의1 오답리뷰</div>
+        <div class="tile" onclick="tog(this)">모의시험 제2회</div>
+        <div class="tile" onclick="tog(this)">모의2 오답리뷰</div>
+      </div>
+    </div>
+
+    <div class="section s-voc">
+      <div class="section-head">
+        <span class="section-title">N1 어휘 리스트</span>
+        <span class="section-count" data-sec="voc">0/41</span>
+      </div>
+      <div class="section-accent"></div>
+      <div class="section-note">Day 01–07 먼저 이것부터&nbsp;&nbsp;·&nbsp;&nbsp;Day 08–41 이것만 외우면 합격</div>
+      <div class="tiles" id="vocGrid" style="grid-template-columns:repeat(7,1fr)"></div>
+    </div>
+
+    <div class="section s-vex">
+      <div class="section-head">
+        <span class="section-title">N1 어휘 연습문제</span>
+        <span class="section-count" data-sec="vex">0/4</span>
+      </div>
+      <div class="section-accent"></div>
+      <div class="tiles" style="grid-template-columns:repeat(4,1fr)">
+        <div class="tile" onclick="tog(this)">한자 읽기</div>
+        <div class="tile" onclick="tog(this)">문맥 구성</div>
+        <div class="tile" onclick="tog(this)">유의 표현</div>
+        <div class="tile" onclick="tog(this)">용법</div>
+      </div>
+    </div>
+
+    <div class="section s-grm">
+      <div class="section-head">
+        <span class="section-title">N1 문법 130</span>
+        <span class="section-count" data-sec="grm">0/16</span>
+      </div>
+      <div class="section-accent"></div>
+      <div class="tiles" style="grid-template-columns:repeat(4,1fr)">
+        <div class="tile" onclick="tog(this)">역접 001–007</div>
+        <div class="tile" onclick="tog(this)">순접 008–012</div>
+        <div class="tile" onclick="tog(this)">조금·유일 013–021</div>
+        <div class="tile" onclick="tog(this)">범위 022–030</div>
+        <div class="tile" onclick="tog(this)">불평·욕 031–038</div>
+        <div class="tile" onclick="tog(this)">목적·금지 039–048</div>
+        <div class="tile" onclick="tog(this)">강조 049–058</div>
+        <div class="tile" onclick="tog(this)">직후·동시 059–067</div>
+        <div class="tile" onclick="tog(this)">가정 068–074</div>
+        <div class="tile" onclick="tog(this)">관계 075–080</div>
+        <div class="tile" onclick="tog(this)">부정① 081–086</div>
+        <div class="tile" onclick="tog(this)">부정② 087–092</div>
+        <div class="tile" onclick="tog(this)">입장·상황 093–102</div>
+        <div class="tile" onclick="tog(this)">수식·동사 103–111</div>
+        <div class="tile" onclick="tog(this)">열거·반복 112–120</div>
+        <div class="tile" onclick="tog(this)">경어 121–130</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div>
+    <div class="section s-rdg">
+      <div class="section-head">
+        <span class="section-title">N1 독해</span>
+        <span class="section-count" data-sec="rdg">0/6</span>
+      </div>
+      <div class="section-accent"></div>
+      <div class="tiles" style="grid-template-columns:repeat(3,1fr)">
+        <div class="tile" onclick="tog(this)">내용이해 (단문)</div>
+        <div class="tile" onclick="tog(this)">내용이해 (중문)</div>
+        <div class="tile" onclick="tog(this)">내용이해 (장문)</div>
+        <div class="tile" onclick="tog(this)">통합이해 (AB)</div>
+        <div class="tile" onclick="tog(this)">주장이해 (장문)</div>
+        <div class="tile" onclick="tog(this)">정보검색</div>
+      </div>
+    </div>
+
+    <div class="section s-lst">
+      <div class="section-head">
+        <span class="section-title">N1 청해</span>
+        <span class="section-count" data-sec="lst">0/5</span>
+      </div>
+      <div class="section-accent"></div>
+      <div class="tiles" style="grid-template-columns:repeat(5,1fr)">
+        <div class="tile" onclick="tog(this)">과제이해</div>
+        <div class="tile" onclick="tog(this)">포인트이해</div>
+        <div class="tile" onclick="tog(this)">개요이해</div>
+        <div class="tile" onclick="tog(this)">즉시응답</div>
+        <div class="tile" onclick="tog(this)">통합이해</div>
+      </div>
+    </div>
+
+    <div class="section s-mck">
+      <div class="section-head">
+        <span class="section-title">N1 모의시험</span>
+        <span class="section-count" data-sec="mck">0/2</span>
+      </div>
+      <div class="section-accent"></div>
+      <div class="tiles" style="grid-template-columns:repeat(2,1fr)">
+        <div class="tile" onclick="tog(this)">제1회</div>
+        <div class="tile" onclick="tog(this)">제2회</div>
+      </div>
+    </div>
+
+    <div class="section s-kn2">
+      <div class="section-head">
+        <span class="section-title">おいしい漢字 N2</span>
+        <span class="section-count" data-sec="kn2">0/20</span>
+      </div>
+      <div class="section-accent"></div>
+      <div class="tiles" style="grid-template-columns:repeat(5,1fr)">
+        <div class="tile" onclick="tog(this)">人の形</div>
+        <div class="tile" onclick="tog(this)">体の形</div>
+        <div class="tile" onclick="tog(this)">手の形</div>
+        <div class="tile" onclick="tog(this)">行動の形</div>
+        <div class="tile" onclick="tog(this)">ほこの形</div>
+        <div class="tile" onclick="tog(this)">心の形</div>
+        <div class="tile" onclick="tog(this)">水の形</div>
+        <div class="tile" onclick="tog(this)">道の形</div>
+        <div class="tile" onclick="tog(this)">言うの形</div>
+        <div class="tile" onclick="tog(this)">お金の形</div>
+        <div class="tile" onclick="tog(this)">動物·虫の形</div>
+        <div class="tile" onclick="tog(this)">家の形</div>
+        <div class="tile" onclick="tog(this)">場所の形</div>
+        <div class="tile" onclick="tog(this)">植物の形</div>
+        <div class="tile" onclick="tog(this)">色の形</div>
+        <div class="tile" onclick="tog(this)">物の形</div>
+        <div class="tile" onclick="tog(this)">ようすの形</div>
+        <div class="tile" onclick="tog(this)">日の形</div>
+        <div class="tile" onclick="tog(this)">火の形</div>
+        <div class="tile" onclick="tog(this)">その他の形</div>
+      </div>
+    </div>
+
+    <div class="section s-kn1">
+      <div class="section-head">
+        <span class="section-title">おいしい漢字 N1</span>
+        <span class="section-count" data-sec="kn1">0/20</span>
+      </div>
+      <div class="section-accent"></div>
+      <div class="tiles" id="kn1Grid" style="grid-template-columns:repeat(5,1fr)"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span>タイルを塗って、モザイクを完成させよう。</span>
+  <span>日本語の森 · 2026</span>
+</div>
+
+<script>
+  // Generate vocab day tiles
+  const vg = document.getElementById('vocGrid');
+  for (let i = 1; i <= 41; i++) {
+    const d = document.createElement('div');
+    d.className = 'tile';
+    d.textContent = String(i).padStart(2, '0');
+    d.onclick = function(){ tog(this); };
+    vg.appendChild(d);
+  }
+
+  // Generate N1 kanji tiles
+  const kg = document.getElementById('kn1Grid');
+  for (let i = 1; i <= 20; i++) {
+    const d = document.createElement('div');
+    d.className = 'tile';
+    d.textContent = i + '章';
+    d.onclick = function(){ tog(this); };
+    kg.appendChild(d);
+  }
+
+  // ── Persistence (localStorage) ──
+  const STORAGE_KEY = 'jlpt-n1-mosaic-v1';
+
+  function save() {
+    const state = [];
+    document.querySelectorAll('.tile').forEach((t, i) => {
+      if (t.classList.contains('done')) state.push(i);
+    });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      const tiles = document.querySelectorAll('.tile');
+      state.forEach(i => { if (tiles[i]) tiles[i].classList.add('done'); });
+      upd();
+    } catch {}
+  }
+
+  function tog(el) {
+    el.classList.toggle('done');
+    upd();
+    save();
+  }
+
+  function upd() {
+    const all = document.querySelectorAll('.tile');
+    const done = document.querySelectorAll('.tile.done');
+    const total = all.length, dn = done.length;
+    const pct = Math.round((dn/total)*100);
+
+    const bar = document.getElementById('pBar');
+    const lbl = document.getElementById('pLabel');
+    const pp = document.getElementById('pPct');
+    if (bar) bar.style.width = pct + '%';
+    if (lbl) lbl.textContent = dn + ' / ' + total;
+    if (pp) pp.textContent = pct + '%';
+
+    // Update section counts
+    document.querySelectorAll('.section').forEach(sec => {
+      const tiles = sec.querySelectorAll('.tile');
+      const dones = sec.querySelectorAll('.tile.done');
+      const cnt = sec.querySelector('.section-count');
+      if (cnt) cnt.textContent = dones.length + '/' + tiles.length;
+    });
+  }
+
+  // Load saved state on page open
+  load();
+</script>
+</body>
+</html>
